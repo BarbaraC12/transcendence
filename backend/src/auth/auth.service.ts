@@ -5,21 +5,31 @@ import { Config } from 'src/config.interface';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly jwt: JwtService,
-    private config: ConfigService<Config>,
-  ) {}
+  private readonly accessSecret: string;
+  private readonly refreshSecret: string;
 
-  async signToken(id: number): Promise<string> {
-    const secret = this.config.getOrThrow('JWT_SECRET');
+  constructor(private readonly jwt: JwtService, config: ConfigService<Config>) {
+    this.accessSecret = config.getOrThrow('JWT_ACCESS_SECRET');
+    this.refreshSecret = config.getOrThrow('JWT_REFRESH_SECRET');
+  }
 
-    const token = await this.jwt.signAsync(
-      { id: id },
+  async signAccessToken(id: number) {
+    return this.jwt.signAsync(
+      { id },
       {
-        expiresIn: '15h',
-        secret: secret,
+        expiresIn: '1h',
+        secret: this.accessSecret,
       },
     );
-    return token;
+  }
+
+  async signRefreshToken(id: number) {
+    return this.jwt.signAsync(
+      { id },
+      {
+        expiresIn: '7d',
+        secret: this.refreshSecret,
+      },
+    );
   }
 }

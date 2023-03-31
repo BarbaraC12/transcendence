@@ -14,10 +14,10 @@ services:
             && npm install
             && npm run start"
     ports:
-      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+      - "${FRONTEND_PORT?:}:${FRONTEND_PORT?:}"
     environment:
-      REACT_APP_URL_BACKEND: ${BACKEND_URL}
-      REACT_APP_MAX_CHATROOM_NBR: ${REACT_APP_MAX_CHATROOM_NBR}
+      REACT_APP_URL_BACKEND: ${BACKEND_URL?:}
+      REACT_APP_MAX_CHATROOM_NBR: ${REACT_APP_MAX_CHATROOM_NBR?:}
     networks:
       - transcendence
     volumes:
@@ -27,7 +27,7 @@ services:
       backend:
         condition: service_healthy
     healthcheck:
-      test: curl -fsSL http://localhost:${FRONTEND_PORT}/
+      test: curl -fsSL http://localhost:${FRONTEND_PORT?:}/
       interval: 10s
       timeout: 50s
       retries: 40
@@ -45,22 +45,23 @@ services:
     command: sh -cx 'apk add --no-cache curl && yarn install && yarn prisma db push && yarn run test && yarn prisma db seed && yarn run start:debug'
     # && yarn run test:e2e:docker
     ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      - "${BACKEND_PORT?:}:${BACKEND_PORT?:}"
       - 5555:5555 # TODO remove is for prisma studio
     env_file:
       - .env
     environment:
-      BACKEND_PORT: ${BACKEND_PORT}
-      FRONTEND_URL: ${FRONTEND_URL}
-      SESSION_SECRET: ${SESSION_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/pong?schema=public
-      INTRA42_CLIENT_ID: ${INTRA42_CLIENT_ID}
-      INTRA42_CLIENT_SECRET: ${INTRA42_CLIENT_SECRET}
-      INTRA42_CALLBACK_URL: ${INTRA42_CALLBACK_URL}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL}
+      BACKEND_PORT: ${BACKEND_PORT?:}
+      FRONTEND_URL: ${FRONTEND_URL?:}
+      SESSION_SECRET: ${SESSION_SECRET?:}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET?:}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET?:}
+      DATABASE_URL: postgresql://${POSTGRES_USER?:}:${POSTGRES_PASSWORD?:}@database:5432/pong?schema=public
+      INTRA42_CLIENT_ID: ${INTRA42_CLIENT_ID?:}
+      INTRA42_CLIENT_SECRET: ${INTRA42_CLIENT_SECRET?:}
+      INTRA42_CALLBACK_URL: ${INTRA42_CALLBACK_URL?:}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID?:}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET?:}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL?:}
     networks:
       - transcendence
     volumes:
@@ -68,7 +69,7 @@ services:
       - backend_node_modules:/backend/node_modules/
     restart: unless-stopped
     healthcheck:
-      test: curl -fsSL http://localhost:${BACKEND_PORT}/healthcheck
+      test: curl -fsSL http://localhost:${BACKEND_PORT?:}/healthcheck
       interval: 10s
       timeout: 50s
       retries: 40
@@ -90,7 +91,7 @@ services:
       - transcendence
     restart: unless-stopped
     healthcheck:
-      test: pg_isready -U ${POSTGRES_USER}
+      test: pg_isready -U ${POSTGRES_USER?:}
       interval: 10s
       timeout: 2s
       retries: 25

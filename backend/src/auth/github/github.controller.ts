@@ -50,7 +50,7 @@ export class GithubController {
   async callback(@SessionUser() user: User, @Res() res: Response) {
     if (user === undefined) throw new UnauthorizedException();
     await this.give.fisrtLogin(user);
-    const token = await this.auth.signToken(user.id);
+    const token = await this.auth.signAccessToken(user.id);
 
     res.cookie('access_token', token, {
       maxAge: convertTime({

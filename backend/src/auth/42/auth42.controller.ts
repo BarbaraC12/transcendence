@@ -19,7 +19,7 @@ import { convertTime } from 'src/utils/time';
 @Controller('/auth/42')
 @ApiTags('Authentication/42')
 export class Auth42Controller {
-  private readonly frontendUrl;
+  private readonly frontendUrl: string;
 
   constructor(
     private readonly auth: AuthService,
@@ -50,7 +50,7 @@ export class Auth42Controller {
   async callback(@SessionUser() user: User, @Res() res: Response) {
     if (user === undefined) throw new UnauthorizedException();
     await this.give.fisrtLogin(user);
-    const token = await this.auth.signToken(user.id);
+    const token = await this.auth.signAccessToken(user.id);
 
     res.cookie('access_token', token, {
       maxAge: convertTime({
