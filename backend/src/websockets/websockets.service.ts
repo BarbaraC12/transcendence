@@ -1,18 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Socket } from 'socket.io';
+import { Config } from 'src/config.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class WebsocketsService {
+  private readonly logger = new Logger();
   private sockets: Socket[] = [];
   private _socketsOnClose = new Map();
 
   constructor(
     private readonly jwt: JwtService,
     private readonly prismaService: PrismaService,
-    private readonly config: ConfigService,
+    private readonly config: ConfigService<Config>,
   ) {}
 
   async registerSocket(socket: any) {
@@ -27,7 +29,7 @@ export class WebsocketsService {
     }
     try {
       const verify = this.jwt.verify(token, {
-        secret: this.config.get('JWT_SECRET'),
+        secret: this.config.getOrThrow('JWT_ACCESS_SECRET'),
       });
       if (!verify || !verify.id) {
         this.send(socket, 'error', 'No user found');
@@ -61,7 +63,6 @@ export class WebsocketsService {
       socket['user'] = user;
       this.sockets.push(socket);
     } catch (e) {
-      // console.log(e);
       this.send(socket, 'error', { message: 'Invalid session cookie' });
       socket.disconnect();
       return;
