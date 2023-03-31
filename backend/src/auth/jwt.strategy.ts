@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         JwtStrategy.fromCookie,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
-      ignoreExpiration: true,
+      ignoreExpiration: false,
       secretOrKey: config.getOrThrow('JWT_SECRET'),
     });
   }

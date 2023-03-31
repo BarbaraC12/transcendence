@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { Socket } from 'socket.io';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class WebsocketsService {
@@ -61,7 +61,7 @@ export class WebsocketsService {
       socket['user'] = user;
       this.sockets.push(socket);
     } catch (e) {
-      console.log(e);
+      // console.log(e);
       this.send(socket, 'error', { message: 'Invalid session cookie' });
       socket.disconnect();
       return;
