@@ -1,21 +1,15 @@
-import {
-  Controller,
-  Param,
-  Get,
-  UseGuards,
-  ParseIntPipe,
-} from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiResponse } from '@nestjs/swagger';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
-import { StatsService } from './stats.service';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
+import { StatsService } from 'src/stats/stats.service';
 
 @Controller('/stats')
 @ApiTags('Statistique')
 export class StatsController {
-  constructor(private StatsService: StatsService) {}
+  constructor(private readonly StatsService: StatsService) {}
 
   @Get('/:Nickname')
-  @UseGuards(IsAuthenticatedGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiOperation({
     summary: 'Get a user stats by its id',
   })

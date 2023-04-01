@@ -18,14 +18,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
 import { SessionUser } from 'src/decorator/session-user.decorator';
 import { SetNicknameDTO } from 'src/user/dto/setNickname.dto';
 import { UserService } from 'src/user/user.service';
 import { WebsocketsService } from 'src/websockets/websockets.service';
 
 @Controller('/user')
-@UseGuards(IsAuthenticatedGuard)
+@UseGuards(AccessTokenGuard)
 @ApiTags('Users')
 export class UserController {
   private readonly logger = new Logger(UserController.name);

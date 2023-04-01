@@ -21,13 +21,13 @@ import {
 } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { Request, Response } from 'express';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
 import { VerifyTokenDTO } from 'src/auth/totp/dto/verifyToken.dto';
 import { TotpService } from 'src/auth/totp/totp.service';
 import { SessionUser } from 'src/decorator/session-user.decorator';
 import { UserService } from 'src/user/user.service';
 
-@UseGuards(IsAuthenticatedGuard)
+@UseGuards(AccessTokenGuard)
 @Controller('/auth/totp')
 export class TotpController {
   private readonly logger = new Logger(TotpController.name);

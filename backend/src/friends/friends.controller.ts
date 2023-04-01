@@ -1,28 +1,22 @@
 import {
+  Body,
   Controller,
   Get,
-  Req,
-  Res,
-  UseGuards,
-  Post,
-  Body,
   Param,
   Patch,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
-import { Request, Response } from 'express';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
-import { Config } from 'src/config.interface';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
 import { SessionUser } from 'src/decorator/session-user.decorator';
-import { UserService } from 'src/user/user.service';
 import { FriendDto } from './dto/friends.dto';
 import { FriendService } from './friends.service';
 
 @Controller('/friend')
 @ApiTags('Friends')
-@UseGuards(IsAuthenticatedGuard)
+@UseGuards(AccessTokenGuard)
 export class FriendsController {
   constructor(private readonly friendsService: FriendService) {}
 

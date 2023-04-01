@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { Request, Response } from 'express';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
 import { Config } from 'src/config.interface';
 import { SessionUser } from 'src/decorator/session-user.decorator';
 import { UserService } from 'src/user/user.service';
@@ -39,9 +39,14 @@ export class AuthController {
       .redirect(`${this.frontendUrl}/login`);
   }
 
+  @Get('refresh')
+  async refreshToken() {
+    //
+  }
+
   @Get('getuser')
   @ApiOperation({ summary: "Returns the current user's data" })
-  @UseGuards(IsAuthenticatedGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiBadRequestResponse({
     description:
       'The user has two-step authentication enabled and the session was not verified',

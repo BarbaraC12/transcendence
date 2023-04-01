@@ -11,13 +11,13 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AchievementService } from 'src/achievement/achievement.service';
 import { AchievementDTO } from 'src/achievement/dto/achievement.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsAdmin } from 'src/achievement/guard/isadmin.guard';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
 
-@UseGuards(IsAuthenticatedGuard)
+@UseGuards(AccessTokenGuard)
 @Controller('achievements')
 @ApiTags('Achievement')
 export class AchievementController {

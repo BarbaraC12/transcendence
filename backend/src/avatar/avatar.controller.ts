@@ -15,11 +15,11 @@ import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { Request } from 'express';
 import { giveAchievementService } from 'src/achievement/utils/giveachievement.service';
-import { IsAuthenticatedGuard } from 'src/auth/auth.guard';
+import { AccessTokenGuard } from 'src/auth/accessToken.guard';
 import { SessionUser } from 'src/decorator/session-user.decorator';
 import { UserService } from 'src/user/user.service';
 
-@UseGuards(IsAuthenticatedGuard)
+@UseGuards(AccessTokenGuard)
 @Controller('/avatar')
 export class AvatarController {
   private readonly logger = new Logger(AvatarController.name);
@@ -94,7 +94,7 @@ export class AvatarController {
   }
 
   @Delete('/')
-  @UseGuards(IsAuthenticatedGuard)
+  @UseGuards(AccessTokenGuard)
   @ApiTags('Avatar')
   async deleteAvatar(@SessionUser() user: User) {
     this.giveAchievement.custom(user);
