@@ -18,7 +18,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         JwtRefreshStrategy.fromCookie,
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        ExtractJwt.fromHeader('RefreshToken'),
       ]),
       ignoreExpiration: false,
       secretOrKey: config.getOrThrow('JWT_REFRESH_SECRET'),
@@ -26,7 +26,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
 
   private static fromCookie(req: Request): string | null {
-    return req.cookies?.access_token ?? null;
+    return req.cookies?.refresh_token ?? null;
   }
 
   async validate(payload: { id: number }) {
