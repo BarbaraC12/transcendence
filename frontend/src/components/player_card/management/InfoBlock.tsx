@@ -161,7 +161,8 @@ const InfoBlock = ({ player }: { player: PlayerProfile }) => {
       <InvitationSendModal
         open={openInvitationModal}
         setOpen={setOpenInvitationModal}
-        invitee={player.nickname}
+        id={player.id}
+        nickname={player.nickname}
       />
       <BadgePong player={player}>
         <Avatar

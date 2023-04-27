@@ -45,7 +45,7 @@ const LobbySearchBar = () => {
       <InvitationSendModal
         open={open}
         setOpen={setOpen}
-        invitee={searchValue}
+        nickname={searchValue}
       ></InvitationSendModal>
 
       <div style={{ paddingBottom: '21px' }}>

@@ -51,7 +51,7 @@ export class GameService {
     });
   }
 
-  async create_invitation(
+  async create_invitation_by_nickname(
     socket: any,
     payload: any,
   ): Promise<{ status: number; reason: string }> {
@@ -90,6 +90,53 @@ export class GameService {
       data: {
         createdById: socket.user.id,
         sendToId: user.id,
+        winScore: payload.winScore,
+        obstacle: payload.obstacle,
+      },
+    });
+    const res = convert_invitation(socket, payload);
+    this.websocket.send(invited_socket[0], 'invitation_game', res);
+    this._set_players_status([invited_socket[0], socket], 'PREPARING');
+    return { status: 200, reason: 'Invitation send' };
+  }
+
+  async create_invitation_by_id(
+    socket: any,
+    payload: any,
+  ): Promise<{ status: number; reason: string }> {
+    const user: {
+      status: StatusUser;
+      blockedUsers: User[];
+    } | null = await this.prisma.user.findUnique({
+      where: {
+        id: payload.id,
+      },
+      select: {
+        status: true,
+        blockedUsers: true,
+      },
+    });
+    if (!user) return { status: 404, reason: 'User not found' };
+    if (user.blockedUsers.find((user) => user.nickname == socket.user.nickname))
+      return { status: 406, reason: 'User blocked you' };
+    if (user.status == 'PLAYING')
+      return { status: 400, reason: 'User Already in game' };
+    if (user.status == 'PREPARING')
+      return { status: 400, reason: 'User is preparing to play' };
+    const already_exist = await this.prisma.matchInvitation.findMany({
+      where: {
+        createdById: socket.user.id,
+      },
+    });
+    if (already_exist.length > 0)
+      return { status: 429, reason: 'Invitation already send' };
+    const invited_socket: Socket[] = this.websocket.getSockets([payload.id]);
+    if (!invited_socket || !invited_socket[0])
+      return { status: 400, reason: 'User offline' };
+    await this.prisma.matchInvitation.create({
+      data: {
+        createdById: socket.user.id,
+        sendToId: payload.id,
         winScore: payload.winScore,
         obstacle: payload.obstacle,
       },

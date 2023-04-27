@@ -85,7 +85,10 @@ export class GameGateway {
     ) {
       return { status: 403, reason: 'Data needed not fetch' };
     }
-    return this.game.create_invitation(socket, payload);
+    if (payload.id) return this.game.create_invitation_by_id(socket, payload);
+    else if (payload.nickname)
+      return this.game.create_invitation_by_nickname(socket, payload);
+    return { status: 666, reason: 'SATAN' };
   }
 
   @SubscribeMessage('match_invitation_cancel')
@@ -104,7 +107,6 @@ export class GameGateway {
     socket: Socket,
     payload: any,
   ): Promise<{ status: number; reason: string }> {
-    // Need the from | win score | obstacle
     if (
       !socket ||
       !payload ||

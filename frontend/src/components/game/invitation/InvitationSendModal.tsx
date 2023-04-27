@@ -23,11 +23,13 @@ const DEFAULT_WIN_SCORE = 5;
 const InvitationSendModal = ({
   open,
   setOpen,
-  invitee
+  nickname,
+  id,
 }: {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  invitee: string;
+  nickname? : string;
+  id?: number;
 }) => {
   const navigate = useNavigate();
   const { setGameStatus } = useContext(GameStatusContext);
@@ -60,22 +62,23 @@ const InvitationSendModal = ({
         {
           winScore: winScore,
           obstacle: obstacleEnabled,
-          nickname: invitee
+          id : id,
+          nickname : nickname,
         },
         (response: any) => {
           if (response.status === 200) {
             resolve(response);
             setInvitationSent(true);
           } else if (response.status === 400) {
-            reject((response.error = `${invitee} is occupied`));
+            reject((response.error = `${nickname} is occupied`));
           } else if (response.status === 404) {
             reject(
-              (response.error = `Player with nickname "${invitee}" was not found`)
+              (response.error = `Player with nickname "${nickname}" was not found`)
             );
           } else if (response.status === 429) {
             reject((response.error = 'Invitation is already sent'));
           } else if (response.status === 406) {
-            reject((response.error = `${invitee} has blocked you`));
+            reject((response.error = `${nickname} has blocked you`));
           } else {
             reject((response.error = 'Something went wrong'));
           }
@@ -105,7 +108,7 @@ const InvitationSendModal = ({
   const cancelInvitation = () => {
     if (invitationSent) {
       socket.emit('match_invitation_cancel', {
-        nickname: invitee
+        nickname: nickname
       });
     }
   };
@@ -121,7 +124,7 @@ const InvitationSendModal = ({
   socket.on('invitation_refused', (args) => {
     setOpen(false);
     setDefault();
-    errorAlert(`${invitee} refused your invitation`);
+    errorAlert(`${nickname} refused your invitation`);
   });
 
   return (
@@ -222,7 +225,7 @@ const InvitationSendModal = ({
                 <div style={MUI.loadButtonBlock}>
                   <LoadingButton
                     type="submit"
-                    title={`Invite ${invitee} to play game`}
+                    title={`Invite ${nickname} to play game`}
                     loading={loading}
                     loadingPosition="end"
                     endIcon={
