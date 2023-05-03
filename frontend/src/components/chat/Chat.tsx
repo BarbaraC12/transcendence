@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import * as React from 'react';
 import {
   Box,
@@ -74,11 +74,11 @@ const Chat = () => {
     });
   };
 
-  // useEffect(() => {
+  useEffect(() => {
+    findAllChatRooms();
     
-  // }, [socketEvent]);
+  }, [socketEvent]);
   
-  findAllChatRooms();
 
   const [open, setOpen] = useState<boolean>(false);
   const handleClickOpen = () => {
@@ -116,15 +116,12 @@ const Chat = () => {
     errorAlert('Password cannot be empty');
   };
 
-  //socket.on('connect', () => {
-  //  // console.log('Connected to websocket')
-  //});
-  //socket.on('createChatRoom', (roomName: string) => {
-  //  // console.log('Created new chat room [' + roomName + ']');
-  //});
-  //socket.on('exception', (res) => {
-  //  errorAlert(String(res.msg));
-  //});
+
+  /*************************************************************
+   * Event listeners
+   **************************************************************/
+  useEffect(() => {
+  //   // Activate listeners and subscribe to events as the component is mounted
 
   socket.on('connect', () => {
     //console.log('Connected to websocket');
@@ -139,22 +136,18 @@ const Chat = () => {
     //console.log('Received new message!');
   });
 
-  /*************************************************************
-   * Event listeners
-   **************************************************************/
-  // useEffect(() => {
-  //   // Activate listeners and subscribe to events as the component is mounted
-
-
   //   // Clean listeners to unsubscribe all callbacks for these events
   //   // before the component is unmounted
-  //   return () => {
+    return () => {
   //     socket.off('connect');
   //     socket.off('createChatRoom');
   //     socket.off('exception');
   //     socket.off('createMessage');
-  //   };
-  // }, [socket]);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+  }, [chatRooms]);
 
   // When clicking on the 'new' button to create a new chat room
   const onNewClick = () => {
@@ -266,7 +259,6 @@ const Chat = () => {
     setIsPasswordProtected(false);
     setIsPasswordRight(false);
   };
-
   /*************************************************************
    * Render HTML response
    **************************************************************/

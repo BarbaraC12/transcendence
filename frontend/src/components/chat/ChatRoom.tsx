@@ -130,7 +130,7 @@ const ChatRoom = (props: ChatRoomProps) => {
       setMessages(filteredMessages);
     }
     );
-    setTimeout(scrollToLastChild, 500);//scroll to last message
+    setTimeout(scrollToLastChild, 100);//scroll to last message
     // why did he take 0.5sec to send msg ??
 
   };
@@ -143,7 +143,7 @@ const ChatRoom = (props: ChatRoomProps) => {
     findAllMessages();
 
     socket.on('messageEvent', (args) => {
-      console.log(args);
+      // console.log(args);
       findAllMessages();
     });
 
@@ -270,6 +270,8 @@ const ChatRoom = (props: ChatRoomProps) => {
       });
       props.cleanRoomLoginData();
     };
+
+
   /*************************************************************
    * Render HTML response
   **************************************************************/
