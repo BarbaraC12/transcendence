@@ -22,7 +22,6 @@ ConfigModule.forRoot();
 export class ChatGateway {
   @WebSocketServer()
   server: Server;
-  websocket: any;
   private readonly logger = new Logger(ChatGateway.name);
 
   constructor(
@@ -44,9 +43,7 @@ export class ChatGateway {
         (await this.chatService.isUserMuted(roomName, msg.author.id)) === false
       )
         await this.chatService.createMessage(roomName, msg);
-      console.log('message emitted: ' + Object.entries(msg));
-      client.broadcast.emit('createMessage');
-    } else throw new WsException({ msg: 'createMessage: message is empty!' });
+    } else throw new WsException({ msg: 'messageEvent: message is empty!' });
   }
 
   @SubscribeMessage('createChatRoom')
@@ -148,8 +145,15 @@ export class ChatGateway {
     if ((await this.chatService.isUserBanned(roomName, user.id)) === true)
       throw new WsException({ msg: 'joinRoom: User is banned.' });
     await this.chatService.identify(roomName, user, '', avatar, true);
-    this.server.emit('joinRoom', roomName, user.id);
-    return this.chatService.getChatRoomByName(roomName);
+      console.log("Je join " + roomName + " Je suis" + user.nickname + " " + user.id);
+    // New one
+
+    
+    const ret = await this.chatService.getChatRoomByName(roomName);
+    // Previous one (all the server dont need to know about a user join another channel)
+    // this.server.emit('joinRoom', roomName, user.id);
+    this.chatService.sendToUserInRoom(roomName, 'joinRoom', {'userIdJoin' : user.id});
+    return ret;
   }
 
   @SubscribeMessage('quitRoom')
@@ -157,19 +161,21 @@ export class ChatGateway {
     @MessageBody('roomName') roomName: string,
     @MessageBody('userId') userId: number,
   ): Promise<void> {
+    this.chatService.sendToUserInRoom(roomName, 'quitRoom', {'userIdLeave' : userId})
     await this.chatService.quitRoom(roomName, userId);
-    this.server.emit('quitRoom', roomName, userId);
+    // this.server.emit('quitRoom', roomName, userId);
+    console.log('quitRoom emitted: ' + roomName + ' ' + userId);
   }
 
-  @SubscribeMessage('typingMessage')
-  typingMessage(
-    @MessageBody('roomName') roomName: string,
-    @MessageBody('nick') nick: string,
-    @MessageBody('isTyping') isTyping: boolean,
-    @ConnectedSocket() client: Socket,
-  ) {
-    client.broadcast.emit('typingMessage', roomName, nick, isTyping);
-  }
+  // @SubscribeMessage('typingMessage')
+  // typingMessage(
+  //   @MessageBody('roomName') roomName: string,
+  //   @MessageBody('nick') nick: string,
+  //   @MessageBody('isTyping') isTyping: boolean,
+  //   @ConnectedSocket() client: Socket,
+  // ) {
+    // client.broadcast.emit('typingMessage', roomName, nick, isTyping);
+  // }
 
   @SubscribeMessage('isPasswordProtected')
   async isPasswordProtected(@MessageBody('roomName') roomName: string) {
@@ -199,7 +205,8 @@ export class ChatGateway {
     //   throw new WsException({ msg: 'changePassword: wrong password!' });
     await this.chatService.changePassword(roomName, newPassword);
     const isDeleted = newPassword && newPassword !== '' ? false : true;
-    this.server.emit('changePassword', roomName, isDeleted);
+    this.chatService.sendToUserInRoom(roomName, 'changePassword', {'isDeleted' : isDeleted});
+    // this.server.emit('changePassword', roomName, isDeleted);
   }
 
   // Check user's privileges
@@ -242,7 +249,10 @@ export class ChatGateway {
       await this.chatService.updateUserModes(roomName, target, modes);
       // Create event name, ex: unmuteUser
       const event: string = (off ? 'un' : '') + mode + 'User';
-      this.server.emit(event, roomName, target);
+      
+      this.chatService.sendToUserInRoom(roomName, event, {'userId' : target});
+      // this.server.emit(event, roomName, target);
+
     }
   }
 
@@ -265,7 +275,8 @@ export class ChatGateway {
       await this.chatService.unBanUser(roomName, target);
       await this.chatService.quitRoom(roomName, target);
     } else await this.chatService.banUser(roomName, target);
-    this.server.emit(event, roomName, target);
+    this.chatService.sendToUserInRoom(roomName, event, {'userId' : target});
+    // this.server.emit(event, roomName, target);
   }
 
   @SubscribeMessage('kickUser')
@@ -282,7 +293,8 @@ export class ChatGateway {
         msg: "kickUser: user doesn't have enough privileges!!",
       });
     await this.chatService.quitRoom(roomName, target);
-    this.server.emit('kickUser', roomName, target);
+    this.chatService.sendToUserInRoom(roomName, 'kickUser', {'userId' : target});
+    // this.server.emit('kickUser', roomName, target);
   }
 
   @SubscribeMessage('updateBlockedUsers')

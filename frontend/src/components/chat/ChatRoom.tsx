@@ -53,13 +53,14 @@ const ChatRoom = (props: ChatRoomProps) => {
   // messages from blocked users/users who blocked the user
   const [messages, setMessages] = useState<Message[]>([]);
   // Display typing state of the user
-  const [typingDisplay, setTypingDisplay] = useState<string>('');
+  // const [typingDisplay, setTypingDisplay] = useState<string>('');
   // Message input field value
   const [messageText, setMessageText] = useState<string>('');
   // Users from whom the user is blockedd by
   const [blockedBy, setBlockedBy] = useState<User[]>([]);
   // const [socketEventChat, setSocketEventChat] = useState(0);
   const msgEndRef = useRef<HTMLDivElement>(null);
+  const [chatRoomEvent, setChatRoomEvent] = useState(0);
 
   const findAllMembers = async () => {
     socket.emit(
@@ -126,14 +127,13 @@ const ChatRoom = (props: ChatRoomProps) => {
           }
         }
       }
-      const filteredMessages = messagesToFilter;
-      setMessages(filteredMessages);
+      // const filteredMessages = messagesToFilter;
+      setMessages(messagesToFilter);
+      // scrollToLastChild();
     }
     );
-    setTimeout(scrollToLastChild, 100);//scroll to last message
-    // why did he take 0.5sec to send msg ??
-
-  };
+    // setTimeout(scrollToLastChild , 100);
+    };
 
 	// Get all messages from messages array in chat.service
 	// and fill the messages variable
@@ -143,12 +143,12 @@ const ChatRoom = (props: ChatRoomProps) => {
     findAllMessages();
 
     socket.on('messageEvent', (args) => {
-      // console.log(args);
       findAllMessages();
     });
+  }, [chatRoomEvent ]);
+  console.log("rerender chatRoomEvent: " + chatRoomEvent);
 
-  }, []);
-
+  useEffect(() => {
     // socket.on(
     // 'typingMessage',
     // (roomName: string, nick: string, isTyping: boolean) => {
@@ -169,54 +169,71 @@ const ChatRoom = (props: ChatRoomProps) => {
     // });
 
     socket.on('changePassword', (roomName: string, isDeleted: boolean) => {
-      // if (roomName === props.room.name) {
-        // const status = isDeleted ? 'deleted' : 'modified';
-        // console.log('Password from [' + roomName + '] has been ' + status);
-      // }
+      console.log('changePassword ' + user.id);
     });
 
-    socket.on('joinRoom', (roomName: string, userId: number) => {
-      // if (roomName === props.room.name) console.log('user ID: ' + userId + ' joined chatroom [' + roomName + ']');
+    socket.on('joinRoom', (args) => {
+      console.log('joinRoom ' + user.id);
+      if (args.userIdJoin === user.id) {
+        setChatRoomEvent((prev) => prev + 1);
+      }
     });
 
     socket.on('quitRoom', (roomName: string, userId: number) => {
-      if (userId === user.id && roomName === props.room.name) {
+      console.log('quitRoom ' + user.id);
+      if (userId === user.id ) {
         props.cleanRoomLoginData();
-        // console.log('user ID: ' + userId + ' quit room [' + roomName + ']');
+      }
+      else {
+      setChatRoomEvent((prev) => prev + 1);
       }
     });
 
     socket.on('kickUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log(target + ' has been kicked!');
+      console.log('kickUser ' + user.id);
       if (target === user.id) props.cleanRoomLoginData();
     });
 
     // User has made admin
     socket.on('adminUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log(target + ' is admin now!');
+      console.log('adminUser ' + user.id);
     });
 
     // User is not admin anymore
     socket.on('unadminUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log('user ID: ' + target + ' is not admin anymore now!');
+      console.log('unadminUser ' + user.id);
     });
 
     socket.on('banUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log(target + ' has been banned!');
+      console.log('banUser ' + user.id);
       if (target === user.id) props.cleanRoomLoginData();
     });
 
     socket.on('unbanUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log(target + ' has been unbanned!');
+      console.log('unbanUser ' + user.id);
     });
 
     socket.on('muteUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log(target + ' has been muted!');
+      console.log('muteUser ' + user.id);
     });
 
     socket.on('unmuteUser', (roomName: string, target: number) => {
-      // if (roomName === props.room.name) console.log(target + ' has been unmuted!');
+      console.log('unmuteUser ' + user.id);
     });
+    return () => {
+			socket.off('typingMessage');
+			socket.off('changePassword');
+			socket.off('joinRoom');
+			// socket.off('quitRoom');
+			socket.off('kickUser');
+			socket.off('adminUser');
+			socket.off('unadminUser');
+			socket.off('banUser');
+			socket.off('unbanUser');
+			socket.off('muteUser');
+			socket.off('unmuteUser');
+		};
+  }, []);
   
   /*************************************************************
    * Events
@@ -259,6 +276,7 @@ const ChatRoom = (props: ChatRoomProps) => {
       });
       console.log("Message send")
       // Reset input field value once sent
+      setChatRoomEvent((prev) => prev + 1);
       setMessageText('');
     };
     
@@ -355,14 +373,14 @@ const ChatRoom = (props: ChatRoomProps) => {
               </Stack>
             )}
             <Grid item xs={10} className="chat-room-text">
-              <div className="typingButton hidden-smartphone">
+              {/* <div className="typingButton hidden-smartphone">
                 {typingDisplay && (
                   <div className="black">
                     <CircularProgress color="inherit" />
                     {typingDisplay}
                   </div>
                 )}
-              </div>
+              </div> */}
               <FormControl fullWidth onSubmit={onFormSubmit}>
                 <TextField
                   value={messageText}

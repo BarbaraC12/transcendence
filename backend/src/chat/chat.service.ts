@@ -98,30 +98,8 @@ export class ChatService {
           chatRoomName: roomName,
         },
       });
-      const test = await this.prisma.chatRoom.findUnique({
-        where : {
-          name : roomName,
-        },
-        select : {
-          members : {
-            select : {
-              memberId : true,
-            },
-            where : {
-              member : {
-                status : 'ONLINE',
-              }
-            }
-          }
-        }
-      });
-      if (!test) return ;
-      for (let i = 0; i < test.members.length; i++){
-        const socket :any = this.websocket.getSockets([test.members[i].memberId]);
-        console.log(socket[0].user.nickname + ' ' + socket[0].user.status + ' ' + i);
-        if (socket) this.websocket.send(socket[0], 'messageEvent', msg);
-      }
-    } else throw new WsException({ msg: 'createMessage: unknown room name!' });
+      this.sendToUserInRoom(roomName, 'messageEvent', msg);
+    } else throw new WsException({ msg: 'messageEvent: unknown room name!' });
   }
 
   async generateHash(password: string): Promise<string> {
@@ -446,5 +424,34 @@ export class ChatService {
       select: { blockedBy: true },
     });
     return res ? res.blockedBy : null;
+  }
+
+  async sendToUserInRoom(roomName : string, event : string, sendObject : any){
+    const plop :any = await this.prisma.chatRoom.findUnique({
+      where : {
+        name : roomName,
+      },
+      select : {
+        members : {
+          select : {
+            memberId : true,
+          },
+          where : {
+            member : {
+              status : 'ONLINE',
+            },
+            isOnline : true,
+          }
+        }
+      }
+    });
+    console.log(roomName);
+    console.log(plop)
+    if (!plop) return null;
+    for (let i = 0; i < plop.members.length; i++){
+      const socket :any = this.websocket.getSockets([plop.members[i].memberId]);
+      // console.log(socket[0].user.nickname + ' ' + socket[0].user.status + ' ' + i);
+      if (socket) this.websocket.send(socket[0], event, sendObject);
+    }
   }
 }

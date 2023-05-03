@@ -69,7 +69,7 @@ const Chat = () => {
   const [clickedRoomToJoin, setClickedRoomToJoin] = useState<string>('');
 
   const findAllChatRooms = async () => {
-    socket.emit('findAllChatRooms', {}, (response: ChatRoomType[]) => {
+    await socket.emit('findAllChatRooms', {}, (response: ChatRoomType[]) => {
       setChatRooms(response);
     });
   };
@@ -132,17 +132,14 @@ const Chat = () => {
   socket.on('exception', (res) => {
     errorAlert(String(res.msg));
   });
-  socket.on('createMessage', () => {
-    //console.log('Received new message!');
-  });
 
   //   // Clean listeners to unsubscribe all callbacks for these events
   //   // before the component is unmounted
     return () => {
-  //     socket.off('connect');
-  //     socket.off('createChatRoom');
-  //     socket.off('exception');
-  //     socket.off('createMessage');
+      socket.off('connect');
+      socket.off('createChatRoom');
+      socket.off('exception');
+      socket.off('createMessage');
     };
   }, [socket]);
 
@@ -159,7 +156,7 @@ const Chat = () => {
     e.preventDefault();
     if (newChatRoomName.length === 0) warningEmptyName();
     if (newChatRoomName)
-      socket.emit(
+      await socket.emit(
         'createChatRoom',
         {
           room: {
@@ -191,14 +188,18 @@ const Chat = () => {
     if (type === 'name') setNewChatRoomName(value);
     if (type === 'password') setChatRoomPassword(value);
   };
+
+
+
   // When clicking on a room name to join it
   const onClickJoinRoom = async (roomName: string, modes: string) => {
     // Quit current joined room first
     if (user.joinedChatRoom && roomName !== user.joinedChatRoom?.name) {
-      socket.emit('quitRoom', {
+      await socket.emit('quitRoom', {
         roomName: user.joinedChatRoom?.name,
         userId: user.id
       });
+      setSocketEvent((prev) => prev + 1);
     }
     // Notify that the user has clicked on a 'join' button
     // Put this code AFTER the previous quitRoom, since quitRoom
@@ -212,9 +213,18 @@ const Chat = () => {
       joinRoom(roomName);
     }
   };
+
+  useEffect(() => {
+    // IF REALLY NEED IT
+    socket.on('quitRoom', (roomName: string) => {
+      setSocketEvent((prev) => prev + 1);
+    });
+  }, [socket]);
+
+
   // Join a chatroom
   const joinRoom = async (roomName: string) => {
-    socket.emit(
+    await socket.emit(
       'joinRoom',
       { roomName: roomName, user: user, avatar: user.avatar },
       (response: ChatRoomType) => {
@@ -222,11 +232,15 @@ const Chat = () => {
         setClickedRoomToJoin('');
       }
     );
+    setSocketEvent((prev) => prev + 1);
   };
+
+
+
   // Check if the given password for joining a chat room is right
   const onPasswordSubmit = async () => {
     if (clickedRoomToJoin) {
-      socket.emit(
+      await socket.emit(
         'checkPassword',
         { roomName: clickedRoomToJoin, password: inputPassword },
         (response: boolean) => {

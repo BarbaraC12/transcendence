@@ -55,7 +55,7 @@ import { Socket } from 'socket.io-client';
   // message to the user
   export const onPrivMessageClick = async(
     socket: Socket, user: User, user2Id: number, user2Nick: string) => {
-    await socket.emit('createChatRoom', {
+    await socket.emit('createChatRoomB', {
       room: {
         name: '#' + user.nickname + '/' + user2Nick,
         owner: user.id,
