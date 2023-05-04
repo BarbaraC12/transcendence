@@ -120,6 +120,8 @@ export class AchievementService {
     userId: number,
     achievementId: number,
   ): Promise<Achievement | undefined> {
+    if (userId <= 0)
+      throw new NotFoundException('Bad id send');
     const userAchivement: any = await this.prisma.user.findUnique({
       where: {
         id: userId,
