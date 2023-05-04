@@ -101,7 +101,7 @@ const UserMenu = (props: UserMenuProps) => {
                 setUser(res);
               }
             );
-			console.log('UserId: ' + target + ' has been unblocked!');
+			// console.log('UserId: ' + target + ' has been unblocked!');
           }
         }
       } catch (err) {

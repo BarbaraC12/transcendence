@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import * as React from 'react';
 import {
   Box,
@@ -36,6 +36,7 @@ import { ChatRoomType, MemberType } from '../../types/chat';
 import './Chat.css';
 import * as MUI from '../UI/MUIstyles';
 import * as color from '../UI/colorsPong';
+import { RoomRounded } from '@mui/icons-material';
 
 /*************************************************************
  * Chat entrance
@@ -74,11 +75,11 @@ const Chat = () => {
     });
   };
 
-  // useEffect(() => {
+  useEffect(() => {
     
-  // }, [socketEvent]);
+    findAllChatRooms();
+  }, [socketEvent]);
   
-  findAllChatRooms();
 
   const [open, setOpen] = useState<boolean>(false);
   const handleClickOpen = () => {
@@ -126,35 +127,32 @@ const Chat = () => {
   //  errorAlert(String(res.msg));
   //});
 
-  socket.on('connect', () => {
-    //console.log('Connected to websocket');
-  });
-  socket.on('createChatRoom', (roomName: string) => {
-    setSocketEvent((prev) => prev + 1);
-  });
-  socket.on('exception', (res) => {
-    errorAlert(String(res.msg));
-  });
-  socket.on('createMessage', () => {
-    //console.log('Received new message!');
-  });
-
   /*************************************************************
    * Event listeners
    **************************************************************/
-  // useEffect(() => {
-  //   // Activate listeners and subscribe to events as the component is mounted
+  useEffect(() => {
+    // Activate listeners and subscribe to events as the component is mounted
+    socket.on('connect', () => {
+      //console.log('Connected to websocket');
+    });
+    socket.on('createChatRoom', (roomName: string) => {
+      setSocketEvent((prev) => prev + 1);
+    });
+    socket.on('exception', (res) => {
+      errorAlert(String(res.msg));
+    });
 
-
-  //   // Clean listeners to unsubscribe all callbacks for these events
-  //   // before the component is unmounted
-  //   return () => {
-  //     socket.off('connect');
-  //     socket.off('createChatRoom');
-  //     socket.off('exception');
-  //     socket.off('createMessage');
-  //   };
-  // }, [socket]);
+    socket.on('quitRoom', (roomName: string) => {
+      setSocketEvent((prev) => prev + 1);
+    });
+    // Clean listeners to unsubscribe all callbacks for these events
+    // before the component is unmounted
+    return () => {
+      socket.off('connect');
+      socket.off('createChatRoom');
+      socket.off('exception');
+    };
+  }, [socket]);
 
   // When clicking on the 'new' button to create a new chat room
   const onNewClick = () => {
@@ -195,7 +193,13 @@ const Chat = () => {
   };
   // Handle value changes of the input fields during new chatroom creatmessagesToFiltere mode
   const onValueChange = (type: string, value: string) => {
-    if (type === 'name') setNewChatRoomName(value);
+    
+    if (type === 'name') {
+      if (value.match(/^[A-Za-z0-9_-]*$/))
+        setNewChatRoomName(value);
+      else
+        errorAlert("Allowed characters: A-Z _ a-z - 0-9");
+    } 
     if (type === 'password') setChatRoomPassword(value);
   };
   // When clicking on a room name to join it
@@ -206,6 +210,7 @@ const Chat = () => {
         roomName: user.joinedChatRoom?.name,
         userId: user.id
       });
+      setSocketEvent((prev) => prev +1);
     }
     // Notify that the user has clicked on a 'join' button
     // Put this code AFTER the previous quitRoom, since quitRoom
@@ -229,6 +234,7 @@ const Chat = () => {
         setClickedRoomToJoin('');
       }
     );
+    setSocketEvent((prev) => prev + 1);
   };
   // Check if the given password for joining a chat room is right
   const onPasswordSubmit = async () => {
@@ -238,8 +244,10 @@ const Chat = () => {
         { roomName: clickedRoomToJoin, password: inputPassword },
         (response: boolean) => {
           if (response === true) {
-            joinRoom(clickedRoomToJoin);
-            setIsPasswordRight(true);
+            if (clickedRoomToJoin !== user.joinedChatRoom?.name ) {
+              joinRoom(clickedRoomToJoin);
+              setIsPasswordRight(true);
+            }
           } else {
             if (inputPassword.length === 0) warningEmptyPass();
             else warningWrongPass();
@@ -266,7 +274,7 @@ const Chat = () => {
     setIsPasswordProtected(false);
     setIsPasswordRight(false);
   };
-
+  console.log("Rerender chat.tsx");
   /*************************************************************
    * Render HTML response
    **************************************************************/

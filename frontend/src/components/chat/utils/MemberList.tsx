@@ -56,7 +56,7 @@ const MemberList = (props: MemberListProps) => {
     <div>
       {(['right'] as const).map((anchor) => (
         <React.Fragment key={anchor}>
-          <IconButton onClick={toggleDrawer(anchor, true)}>
+          <IconButton title="Members" onClick={toggleDrawer(anchor, true)}>
             <PeopleAlt className="black" />
           </IconButton>
           <Drawer
@@ -64,7 +64,24 @@ const MemberList = (props: MemberListProps) => {
             open={state[anchor]}
             onClose={toggleDrawer(anchor, false)}
           >
-            {list(anchor, props.members)}
+            <Box
+              sx={{ width: 250 }}
+              role="presentation"
+              onClick={toggleDrawer(anchor, true)}
+              onKeyDown={toggleDrawer(anchor, false)}
+            >
+              <List>
+                {Object.keys(props.members).map((id, index) => (
+                  <div key={index}>
+                    <UserMenu
+                      member={props.members[id as any]}
+                      bannedUsers={props.bannedUsers}
+                      members={props.members}
+                    />
+                  </div>
+                ))}
+              </List>
+            </Box>
           </Drawer>
         </React.Fragment>
       ))}

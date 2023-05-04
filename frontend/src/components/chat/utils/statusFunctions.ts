@@ -61,9 +61,14 @@ export const checkPrivileges = (
   // Look for the user asking for privilege
   for (let i = 0; i < members.length; ++i) {
     if (members[i].memberId === userId) {
+
       // If user is neither owner or admin, we stop here
-      if (userId !== owner && members[i].modes.indexOf('a') !== -1)
+      if (userId !== owner && members[i].modes.indexOf('a') !== -1){
         return false;
+      }
+      if (userId !== owner){
+        return false;
+      }
       // Otherwise, there is no reason not to give privilege
       return true;
     }
