@@ -161,7 +161,7 @@ Enum MatchState {
   Finished
 }
 
-Ref: Statistique.userId > User.id
+Ref: Statistique.userId > User.id [delete: Cascade]
 
 Ref: TotpSecret.userId - User.id
 
