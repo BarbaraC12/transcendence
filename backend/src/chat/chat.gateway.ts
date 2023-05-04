@@ -45,7 +45,7 @@ export class ChatGateway {
       )
         await this.chatService.createMessage(roomName, msg);
       console.log('message emitted: ' + Object.entries(msg));
-      client.broadcast.emit('createMessage');
+      // client.broadcast.emit('createMessage');
     } else throw new WsException({ msg: 'createMessage: message is empty!' });
   }
 
