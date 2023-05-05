@@ -278,7 +278,7 @@ const Chat = () => {
   /*************************************************************
    * Render HTML response
    **************************************************************/
-  return !user.provider ? (
+  return !user.provider || (user.provider && !user.nickname) ? (
     <PleaseLogin />
   ) : (
     <Box id="basicCard">
